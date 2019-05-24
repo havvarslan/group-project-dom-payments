@@ -36,7 +36,7 @@
 var account = {
   number: 100402153,
   initialBalance: 100,
-  paymentsUrl: '/data/payments.json',
+  paymentsUrl: "/data/payments.json",
   payments: []
 };
 
@@ -48,15 +48,14 @@ var account = {
  *
  * You may edit this code.
  */
-document.querySelector('#loadButton')
-  .addEventListener('click', function () {
-    fetch(account.paymentsUrl)
-      .then(response => response.json())
-      .then(payments => {
-        account.payments = payments;
-        render(account);
-      });
-  });
+document.querySelector("#loadButton").addEventListener("click", function() {
+  fetch(account.paymentsUrl)
+    .then(response => response.json())
+    .then(payments => {
+      account.payments = payments;
+      render(account);
+    });
+});
 
 /**
  * Write a render function below that updates the DOM with the
@@ -72,17 +71,92 @@ document.querySelector('#loadButton')
  * @param {Object} account The account details
  */
 function render(account) {
-
   // Display the account number
-  document.querySelector('#accountNumber')
-    .innerText = account.number;
-};
+  document.querySelector("#accountNumber").innerText = account.number;
+  document.querySelector("#balanceAmount").innerText =
+    account.initialBalance + calculateTotalBalance(account.payments);
+  var paymentsTable = document.querySelector("#paymentsList");
+  account.payments.forEach(payment => {
+    paymentsTable.appendChild(createPaymentRow(payment));
+  });
+  document.querySelector("#pendingBalance").innerText =
+    account.initialBalance + calculateWithPendingBalance(account.payments);
 
-/**
- * Write any additional functions that you need to complete
- * the group project in the space below.
- *
- * For example, you might want to have functions that
- * calculate balances, find completed or pending payments,
- * add up payments, and more.
- */
+  var mostValuable = document.querySelector("#mostValuablePayment");
+  var paymentsInMay = account.payments.filter(isInMay);
+  var amount = Math.max.apply(
+    Math,
+    paymentsInMay.map(function(payment) {
+      return payment.amount;
+    })
+  );
+  mostValuable.innerText = amount;
+}
+
+function createPaymentRow(payment) {
+  var row = document.createElement("tr");
+
+  var paymentDateElt = document.createElement("td");
+  paymentDateElt.innerText = payment.date;
+  row.appendChild(paymentDateElt);
+
+  var paymentStatusElt = document.createElement("td");
+  var status = "Completed";
+  if (!payment.completed) {
+    status = "Pending";
+    row.classList.add("pending");
+  }
+  paymentStatusElt.innerText = status;
+  row.appendChild(paymentStatusElt);
+
+  var paymentDescElt = document.createElement("td");
+  paymentDescElt.innerText = payment.description;
+  row.appendChild(paymentDescElt);
+
+  var paymentAmountElt = document.createElement("td");
+  paymentAmountElt.innerText = payment.amount;
+  row.appendChild(paymentAmountElt);
+
+  var paymentActionElt = document.createElement("td");
+  if (status === "Pending") {
+    var button = document.createElement("button");
+    button.innerText = "cancel";
+    paymentActionElt.appendChild(button);
+    button.addEventListener("click", removePending);
+  } else {
+    paymentActionElt.innerText = "";
+  }
+
+  row.appendChild(paymentActionElt);
+
+  return row;
+}
+
+function calculateTotalBalance(payments) {
+  var completedPayments = payments.filter(p => p.completed);
+
+  return completedPayments.reduce(
+    (total, payment) => total + payment.amount,
+    0
+  );
+}
+
+function calculateWithPendingBalance(payments) {
+  return payments.reduce((total, payment) => total + payment.amount, 0);
+}
+function isInMay(payment) {
+  var date = new Date(payment.date);
+  return date.getMonth() === 4 && payment.completed === true;
+}
+
+function removePending() {
+  var amount = document.querySelector("#balanceAmount").innerText;
+  for (i = 0; i < account.payments.length; i++) {
+    if (account.payments[i].completed === false) {
+      var pendingPayment = account.payments[i].amount;
+      document.querySelector("#balanceAmount").innerText = (
+        amount - pendingPayment
+      ).toFixed(2);
+    }
+  }
+}
