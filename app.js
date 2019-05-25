@@ -73,6 +73,7 @@ document.querySelector("#loadButton").addEventListener("click", function() {
 function render(account) {
   // Display the account number
   document.querySelector("#accountNumber").innerText = account.number;
+  
   document.querySelector("#balanceAmount").innerText =
     account.initialBalance + calculateTotalBalance(account.payments);
   var paymentsTable = document.querySelector("#paymentsList");
@@ -93,6 +94,32 @@ function render(account) {
   mostValuable.innerText = amount;
 }
 
+
+  // Display the Total Amount including initial Balance and only completed one
+  document.querySelector("#balanceAmount").innerText =
+    account.initialBalance + calculateTotalBalance(account.payments);
+
+  // Display the table
+  var paymentsTable = document.querySelector("#paymentsList");
+  account.payments.forEach(payment => {
+    paymentsTable.appendChild(createPaymentRow(payment));
+  });
+
+  // Display the total balance with pending
+  document.querySelector("#pendingBalance").innerText =
+    account.initialBalance + paymentsTotal(account.payments);
+
+  //Display total income in May
+  document.querySelector("#totalIncome").innerText = calculateIncomeInMay(
+    account.payments
+  );
+
+  // Most valuable payments (Adnan)
+
+  // Cancel button for pending(Adnan)
+}
+
+// creating Table and loading the data
 function createPaymentRow(payment) {
   var row = document.createElement("tr");
 
@@ -118,6 +145,7 @@ function createPaymentRow(payment) {
   row.appendChild(paymentAmountElt);
 
   var paymentActionElt = document.createElement("td");
+  
   if (status === "Pending") {
     var button = document.createElement("button");
     button.innerText = "cancel";
@@ -144,6 +172,32 @@ function calculateTotalBalance(payments) {
 function calculateWithPendingBalance(payments) {
   return payments.reduce((total, payment) => total + payment.amount, 0);
 }
+  paymentActionElt.innerText = "";
+  row.appendChild(paymentActionElt);
+
+  // create button (Adnan)
+  return row;
+}
+
+//  calculate the completed Balance
+function calculateTotalBalance(payments) {
+  var completedPayments = payments.filter(p => p.completed);
+  return paymentsTotal(completedPayments);
+}
+
+//  calculate the total balance with pending
+function paymentsTotal(payments) {
+  return payments.reduce((total, payment) => total + payment.amount, 0);
+}
+
+// calculate total income in May
+function calculateIncomeInMay(payments) {
+  var paymentsInMay = payments.filter(isInMay);
+  var roundNumber = paymentsTotal(paymentsInMay);
+  return Number.parseFloat(roundNumber).toFixed(2);
+}
+
+// Adnan code
 function isInMay(payment) {
   var date = new Date(payment.date);
   return date.getMonth() === 4 && payment.completed === true;
