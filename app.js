@@ -156,28 +156,16 @@ function createPaymentRow(payment) {
   }
 
   row.appendChild(paymentActionElt);
-
+ 
+  // create button (Adnan)
   return row;
 }
 
-function calculateTotalBalance(payments) {
-  var completedPayments = payments.filter(p => p.completed);
-
-  return completedPayments.reduce(
-    (total, payment) => total + payment.amount,
-    0
-  );
-}
 
 function calculateWithPendingBalance(payments) {
   return payments.reduce((total, payment) => total + payment.amount, 0);
 }
-  paymentActionElt.innerText = "";
-  row.appendChild(paymentActionElt);
-
-  // create button (Adnan)
-  return row;
-}
+  
 
 //  calculate the completed Balance
 function calculateTotalBalance(payments) {
