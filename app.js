@@ -73,6 +73,27 @@ document.querySelector("#loadButton").addEventListener("click", function() {
 function render(account) {
   // Display the account number
   document.querySelector("#accountNumber").innerText = account.number;
+  
+  document.querySelector("#balanceAmount").innerText =
+    account.initialBalance + calculateTotalBalance(account.payments);
+  var paymentsTable = document.querySelector("#paymentsList");
+  account.payments.forEach(payment => {
+    paymentsTable.appendChild(createPaymentRow(payment));
+  });
+  document.querySelector("#pendingBalance").innerText =
+    account.initialBalance + calculateWithPendingBalance(account.payments);
+
+  var mostValuable = document.querySelector("#mostValuablePayment");
+  var paymentsInMay = account.payments.filter(isInMay);
+  var amount = Math.max.apply(
+    Math,
+    paymentsInMay.map(function(payment) {
+      return payment.amount;
+    })
+  );
+  mostValuable.innerText = amount;
+}
+
 
   // Display the Total Amount including initial Balance and only completed one
   document.querySelector("#balanceAmount").innerText =
@@ -124,6 +145,33 @@ function createPaymentRow(payment) {
   row.appendChild(paymentAmountElt);
 
   var paymentActionElt = document.createElement("td");
+  
+  if (status === "Pending") {
+    var button = document.createElement("button");
+    button.innerText = "cancel";
+    paymentActionElt.appendChild(button);
+    button.addEventListener("click", removePending);
+  } else {
+    paymentActionElt.innerText = "";
+  }
+
+  row.appendChild(paymentActionElt);
+
+  return row;
+}
+
+function calculateTotalBalance(payments) {
+  var completedPayments = payments.filter(p => p.completed);
+
+  return completedPayments.reduce(
+    (total, payment) => total + payment.amount,
+    0
+  );
+}
+
+function calculateWithPendingBalance(payments) {
+  return payments.reduce((total, payment) => total + payment.amount, 0);
+}
   paymentActionElt.innerText = "";
   row.appendChild(paymentActionElt);
 
@@ -153,4 +201,16 @@ function calculateIncomeInMay(payments) {
 function isInMay(payment) {
   var date = new Date(payment.date);
   return date.getMonth() === 4 && payment.completed === true;
+}
+
+function removePending() {
+  var amount = document.querySelector("#balanceAmount").innerText;
+  for (i = 0; i < account.payments.length; i++) {
+    if (account.payments[i].completed === false) {
+      var pendingPayment = account.payments[i].amount;
+      document.querySelector("#balanceAmount").innerText = (
+        amount - pendingPayment
+      ).toFixed(2);
+    }
+  }
 }
