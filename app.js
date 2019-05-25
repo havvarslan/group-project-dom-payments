@@ -36,7 +36,7 @@
 var account = {
   number: 100402153,
   initialBalance: 100,
-  paymentsUrl: '/data/payments.json',
+  paymentsUrl: "/data/payments.json",
   payments: []
 };
 
@@ -48,15 +48,14 @@ var account = {
  *
  * You may edit this code.
  */
-document.querySelector('#loadButton')
-  .addEventListener('click', function () {
-    fetch(account.paymentsUrl)
-      .then(response => response.json())
-      .then(payments => {
-        account.payments = payments;
-        render(account);
-      });
-  });
+document.querySelector("#loadButton").addEventListener("click", function() {
+  fetch(account.paymentsUrl)
+    .then(response => response.json())
+    .then(payments => {
+      account.payments = payments;
+      render(account);
+    });
+});
 
 /**
  * Write a render function below that updates the DOM with the
@@ -72,17 +71,86 @@ document.querySelector('#loadButton')
  * @param {Object} account The account details
  */
 function render(account) {
-
   // Display the account number
-  document.querySelector('#accountNumber')
-    .innerText = account.number;
-};
+  document.querySelector("#accountNumber").innerText = account.number;
 
-/**
- * Write any additional functions that you need to complete
- * the group project in the space below.
- *
- * For example, you might want to have functions that
- * calculate balances, find completed or pending payments,
- * add up payments, and more.
- */
+  // Display the Total Amount including initial Balance and only completed one
+  document.querySelector("#balanceAmount").innerText =
+    account.initialBalance + calculateTotalBalance(account.payments);
+
+  // Display the table
+  var paymentsTable = document.querySelector("#paymentsList");
+  account.payments.forEach(payment => {
+    paymentsTable.appendChild(createPaymentRow(payment));
+  });
+
+  // Display the total balance with pending
+  document.querySelector("#pendingBalance").innerText =
+    account.initialBalance + paymentsTotal(account.payments);
+
+  //Display total income in May
+  document.querySelector("#totalIncome").innerText = calculateIncomeInMay(
+    account.payments
+  );
+
+  // Most valuable payments (Adnan)
+
+  // Cancel button for pending(Adnan)
+}
+
+// creating Table and loading the data
+function createPaymentRow(payment) {
+  var row = document.createElement("tr");
+
+  var paymentDateElt = document.createElement("td");
+  paymentDateElt.innerText = payment.date;
+  row.appendChild(paymentDateElt);
+
+  var paymentStatusElt = document.createElement("td");
+  var status = "Completed";
+  if (!payment.completed) {
+    status = "Pending";
+    row.classList.add("pending");
+  }
+  paymentStatusElt.innerText = status;
+  row.appendChild(paymentStatusElt);
+
+  var paymentDescElt = document.createElement("td");
+  paymentDescElt.innerText = payment.description;
+  row.appendChild(paymentDescElt);
+
+  var paymentAmountElt = document.createElement("td");
+  paymentAmountElt.innerText = payment.amount;
+  row.appendChild(paymentAmountElt);
+
+  var paymentActionElt = document.createElement("td");
+  paymentActionElt.innerText = "";
+  row.appendChild(paymentActionElt);
+
+  // create button (Adnan)
+  return row;
+}
+
+//  calculate the completed Balance
+function calculateTotalBalance(payments) {
+  var completedPayments = payments.filter(p => p.completed);
+  return paymentsTotal(completedPayments);
+}
+
+//  calculate the total balance with pending
+function paymentsTotal(payments) {
+  return payments.reduce((total, payment) => total + payment.amount, 0);
+}
+
+// calculate total income in May
+function calculateIncomeInMay(payments) {
+  var paymentsInMay = payments.filter(isInMay);
+  var roundNumber = paymentsTotal(paymentsInMay);
+  return Number.parseFloat(roundNumber).toFixed(2);
+}
+
+// Adnan code
+function isInMay(payment) {
+  var date = new Date(payment.date);
+  return date.getMonth() === 4 && payment.completed === true;
+}
